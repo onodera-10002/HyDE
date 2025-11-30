@@ -50,4 +50,6 @@ class LoggerManager:
         logger.addHandler(self._create_file_handler('error.txt', logging.ERROR))
         return logger
     
-
+_manager = LoggerManager()
+def get_logger(module_name: str):
+    return _manager.get_logger(module_name)
