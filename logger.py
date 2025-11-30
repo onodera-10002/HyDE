@@ -24,7 +24,7 @@ class LoggerManager:
     def _create_console_handler(self):
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
-        console_formatter = logging.Formatter(self._format, self._dateformat)
+        console_formatter = logging.Formatter(self._FORMAT, self._DATEFORMAT)
         console_handler.setFormatter(console_formatter)
         return console_handler
     
@@ -34,7 +34,7 @@ class LoggerManager:
             encoding='utf-8'
         )
         file_handler.setLevel(level)
-        file_formatter = logging.Formatter(self._format, self._dateformat)
+        file_formatter = logging.Formatter(self._FORMAT, self._DATEFORMAT)
         file_handler.setFormatter(file_formatter)
         return file_handler
     
