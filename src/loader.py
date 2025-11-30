@@ -25,7 +25,9 @@ class AozoraLoader:
             web_path = (self.url,),
             bs_kwargs = dict(
                 parse_only = bs4.SoupStrainer(class_="main_text")
-            ))
+            ),
+            requests_kwargs=dict(timeout=30)
+            )
         return loader.load()# メゾットとしてのload。関数としてのloadではないことに注意。
     
     def _transform(self, docs):

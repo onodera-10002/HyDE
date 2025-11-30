@@ -27,7 +27,7 @@ def main():
         for qa in questions:
             qa = qa["question"]
             answers = bot.run(question=qa)
-            logger.info(f"Q: {qa}\nA: {answers}\n")
+            logger.info(f"\nQ: {qa}\nA: {answers}\n")
     except Exception as e:
         logger.error(f"エラーが発生しました: {e}")
 

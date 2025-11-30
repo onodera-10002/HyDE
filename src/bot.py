@@ -7,7 +7,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import START, StateGraph
 from src.vector_store import Vectorstore
 from src import config
-
+from src import ChatInput
+from logger import get_logger
 
 class State(TypedDict):
         question: str
@@ -21,11 +22,12 @@ class ChatBot:
         self._template = template
         self._hyde_template = hyde_template
         self._vector_db = vector_db
-        self._llm = init_chat_model(chat_model, model_provider=model_provider)
+        self._llm = init_chat_model(chat_model, model_provider=model_provider, max_retries=3, timeout=30)
         hyde_prompt = PromptTemplate.from_template(self._hyde_template)
         self._prompt = PromptTemplate.from_template(self._template)
         self._hyde_chain = hyde_prompt | self._llm | StrOutputParser()
         self._graph = self._graph_builder()
+        self._logger = get_logger(__name__)
     
     def _hyde_preparation(self, state:State):
         original_question = state["question"]
@@ -35,14 +37,20 @@ class ChatBot:
 
     def _retrieve(self, state: State):
         pre_query = state["pre_query"]
-        retrieved_docs = self._vector_db.search(
-            query = pre_query,
-            k=config.RETRIEVER_K
-        )
-        return {"context": retrieved_docs}
+        try:
+            retrieved_docs = self._vector_db.search(
+                query = pre_query,
+                k=config.RETRIEVER_K
+            )
+            return {"context": retrieved_docs}
+        except Exception as e:
+            self._logger.error(f"ドキュメントの検索中にエラーが発生しました: {e}")
+            return {"context": []}
 
     def _generate(self, state: State):
         docs_content = "\n\n".join(doc.page_content for doc in state["context"])
+        if not docs_content:
+            return {"answer": "申し訳ありませんが、関連する情報が見つかりませんでした。別の質問をお試しください。"}
         messages = self._prompt.invoke({"question": state["question"], "context": docs_content})
         response = self._llm.invoke(messages)
 
@@ -60,6 +68,13 @@ class ChatBot:
         builder.add_edge("retrieve", "generate")
         return builder.compile()
 
-    def run(self, question: List[dict]) -> List[str]:
-        ans = self._graph.invoke({"question": question})
-        return ans["answer"]
+    def run(self, question: List[str]) -> List[str]:
+        try:
+            validate_data = ChatInput(question=question)
+            clean_question = validate_data.question
+            ans = self._graph.invoke({"question": clean_question})
+            return ans["answer"]
+        
+        except Exception as e:
+            error_msg = e.errors()[0]['msg']
+            return f"⚠️ 入力エラー: {error_msg}"
