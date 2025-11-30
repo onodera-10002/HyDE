@@ -10,3 +10,8 @@ class ChatInput(BaseModel):
         if not v.strip():
             raise ValueError("質問は空白だけではいけません。")
         return v
+    
+
+class ChatOutput(BaseModel):
+    """チャットボットの出力データの仕様書"""
+    answer: str

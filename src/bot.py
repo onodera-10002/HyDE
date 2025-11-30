@@ -69,7 +69,7 @@ class ChatBot:
         builder.add_edge("retrieve", "generate")
         return builder.compile()
 
-    def run(self, question: List[str]) -> List[str]:
+    def run(self, question: str) -> List[str]:
         try:
             validate_data = ChatInput(question=question)
             clean_question = validate_data.question

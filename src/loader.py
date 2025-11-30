@@ -5,13 +5,14 @@ import bs4
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
+from logger import get_logger
 
 
 class AozoraLoader:
     def __init__(self, url:str):
         self._url = url
         self._text_splitter = RecursiveCharacterTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
-    
+        self._logger = get_logger(__name__)
     @property
     def url(self):
         return self._url
@@ -21,20 +22,24 @@ class AozoraLoader:
         return self._text_splitter
 
     def _extract(self):
-        loader = WebBaseLoader(
-            web_path = (self.url,),
-            bs_kwargs = dict(
-                parse_only = bs4.SoupStrainer(class_="main_text")
-            ),
-            requests_kwargs=dict(timeout=30)
-            )
-        return loader.load()# メゾットとしてのload。関数としてのloadではないことに注意。
+        try:
+            loader = WebBaseLoader(
+                web_path = (self.url,),
+                bs_kwargs = dict(
+                    parse_only = bs4.SoupStrainer(class_="main_text")
+                ),
+                requests_kwargs=dict(timeout=30)
+                )
+            return loader.load()# メゾットとしてのload。関数としてのloadではないことに注意.
+        except Exception as e:
+            self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")
+            raise ValueError(f"ドキュメントの抽出中にエラーが発生しました: {e}") from e
     
     def _transform(self, docs):
         return self.text_splitter.split_documents(docs)
         
     
-    def doc_load(self):
+    def load(self):
         raw_docs = self._extract()
         return self._transform(raw_docs)
 

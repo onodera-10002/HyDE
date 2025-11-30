@@ -7,3 +7,13 @@ A: 「ともちゃん」は、この小説の登場人物である「ともよ�
 [2025-11-30 17:52:38] [__main__] INFO: チャンクをベクトルストアに追加しました。チャンク数: 24
 [2025-11-30 18:01:49] [__main__] INFO: ドキュメントを読み込み(url=https://www.aozora.gr.jp/cards/000076/files/1016_19596.html)、24個のチャンクに分割しました。
 [2025-11-30 18:01:51] [__main__] INFO: チャンクをベクトルストアに追加しました。チャンク数: 24
+[2025-11-30 18:58:37] [API] INFO: 🚀 API Server Starting...
+[2025-11-30 18:58:37] [API] INFO: 📡 Loading data from: https://www.aozora.gr.jp/cards/000076/files/1016_19596.html
+[2025-11-30 18:58:37] [API] ERROR: ❌ Critical Error during startup: 'AozoraLoader' object has no attribute 'load'
+[2025-11-30 18:59:09] [API] INFO: 🚀 API Server Starting...
+[2025-11-30 18:59:09] [API] INFO: 📡 Loading data from: https://www.aozora.gr.jp/cards/000076/files/1016_19596.html
+[2025-11-30 18:59:09] [API] INFO: 💾 Indexing to VectorDB...
+[2025-11-30 18:59:11] [API] INFO: 🤖 Initializing ChatBot...
+[2025-11-30 18:59:11] [API] INFO: ✅ Ready to accept requests!
+[2025-11-30 19:00:38] [API] INFO: 📩 Request: ともよとは誰ですか？
+[2025-11-30 19:00:52] [API] INFO: 📤 Response sent.
