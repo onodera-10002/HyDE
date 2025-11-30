@@ -7,8 +7,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import START, StateGraph
 from src.vector_store import Vectorstore
 from src import config
-from src import ChatInput
+from src.schemas import ChatInput
 from logger import get_logger
+from pydantic import ValidationError
 
 class State(TypedDict):
         question: str
@@ -75,6 +76,7 @@ class ChatBot:
             ans = self._graph.invoke({"question": clean_question})
             return ans["answer"]
         
-        except Exception as e:
+        except ValidationError as e:
+            self._logger.error(f"question is empty: {e}")
             error_msg = e.errors()[0]['msg']
             return f"⚠️ 入力エラー: {error_msg}"
