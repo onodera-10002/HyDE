@@ -38,3 +38,6 @@ QUESTIONS_LIST = [
     {"question": "湊は最後、ともよに何をあげましたか？"},
     {"question": "湊にとって、鮨を食べることはなぜ慰みになるのですか？"}
 ]
+
+
+LOG_DIR = "logs"
