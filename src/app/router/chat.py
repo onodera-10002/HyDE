@@ -14,9 +14,6 @@ def chat_endpoint(
     # ユーザーの質問
     question = payload.question
     try:
-        # あなたの作った bot.run() を実行
-        # 注意: bot.run の戻り値が単なる str なのか List[str] なのか確認してください。
-        # 現在のあなたのコードでは List[str] の型ヒントですが、実際は answer["answer"] (str) を返しています。
         answer_text = bot.run(question)
         
         return ChatOutput(answer=answer_text)
