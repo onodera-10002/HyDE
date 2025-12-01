@@ -11,6 +11,8 @@ from src.schemas import ChatInput
 from logger import get_logger
 from pydantic import ValidationError
 
+
+
 class State(TypedDict):
         question: str
         context: List[Document]

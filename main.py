@@ -9,7 +9,7 @@ def main():
     logger = get_logger(__name__)
     try:
         loader = AozoraLoader(url = config.WEB_PATH)
-        chunks = loader.doc_load()
+        chunks = loader.load()
         # ここまででloader.pyの役割を完了した。
         logger.info(f"ドキュメントを読み込み(url={config.WEB_PATH})、{len(chunks)}個のチャンクに分割しました。")
         db = Vectorstore(embedding_model=config.EMBEDDING_MODEL)
