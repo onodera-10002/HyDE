@@ -29,3 +29,6 @@ Thumbs.db
 # --- テストやログ ---
 .pytest_cache/
 *.log
+logs/
+*.log
+*.error
