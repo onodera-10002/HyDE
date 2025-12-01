@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.schemas import ChatInput, ChatOutput
 from src.bot import ChatBot
-from app.dependencies import get_bot # さっき作った依存関係
+from src.app.dependencies import get_bot # さっき作った依存関係
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -13,7 +13,6 @@ def chat_endpoint(
 ):
     # ユーザーの質問
     question = payload.question
-    
     try:
         # あなたの作った bot.run() を実行
         # 注意: bot.run の戻り値が単なる str なのか List[str] なのか確認してください。

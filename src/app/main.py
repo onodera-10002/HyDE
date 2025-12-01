@@ -1,7 +1,8 @@
 # main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from router import chat
+from src.app.router import chat
+from src.app.dependencies import set_bot
 
 # あなたの作成したモジュールをインポート
 from src import config
@@ -11,6 +12,8 @@ from src.bot import ChatBot
 
 # グローバル変数として保持（簡易的な実装）
 # 実際は app.state に持たせるのがきれいですが、わかりやすさ優先でここに書きます
+bot_instance = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,19 +34,28 @@ async def lifespan(app: FastAPI):
     print("✅ VectorStore Initialized.")
 
     # 3. ChatBotのインスタンス化 (ここで作成した vector_store を渡す)
-    app.state.bot_instance = ChatBot(
+    bot_instance = ChatBot(
         template=config.TEMPLATE,
         hyde_template=config.HYDE_TEMPLATE,
         vector_db=vector_store
     )
+    set_bot(bot_instance)
     print("🤖 Bot is ready!")
 
     yield  # ここでアプリが稼働開始
 
     # 終了時の処理（必要なら）
     print("🛑 System Shutdown.")
-    app.state.bot_instance = None
+    set_bot(None)
+    bot_instance = None
 
 # アプリ作成
 app = FastAPI(lifespan=lifespan, title="Aozora RAG API")
 app.include_router(chat.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    # ここで自分自身(app)を起動させる
+    # reload=True は開発中便利ですが、この起動方法だと効かないことがあるので
+    # コードを書き換えたら手動で再起動が必要になる場合があります
+    uvicorn.run(app, host="127.0.0.1", port=8004)
