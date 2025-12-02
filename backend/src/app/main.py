@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from src.app.router import chat
 from src.app.dependencies import set_bot
+from logger import get_logger
 
 # あなたの作成したモジュールをインポート
 from src import config
@@ -22,17 +23,18 @@ async def lifespan(app: FastAPI):
     アプリ起動時に1回だけ実行される処理
     ここで重たい処理（データのロード、VectorStoreの構築）を済ませる
     """
-    print("🚀 System Starting... Loading Data...")
+    logger = get_logger()
+    logger.info("🚀 System Starting... Loading Data...")
 
     # 1. データのロード (ETL)
     loader = AozoraLoader(config.WEB_PATH)
     docs = loader.load()
-    print(f"✅ Loaded {len(docs)} chunks from Aozora.")
+    logger.info(f"✅ Loaded {len(docs)} chunks from Aozora.")
 
     # 2. VectorStoreの初期化
     vector_store = Vectorstore(config.EMBEDDING_MODEL)
     vector_store.add(docs)
-    print("✅ VectorStore Initialized.")
+    logger.info("✅ VectorStore Initialized.")
 
     # 3. ChatBotのインスタンス化 (ここで作成した vector_store を渡す)
     bot_instance = ChatBot(
@@ -41,12 +43,12 @@ async def lifespan(app: FastAPI):
         vector_db=vector_store
     )
     set_bot(bot_instance)
-    print("🤖 Bot is ready!")
+    logger.info("🤖 Bot is ready!")
 
     yield  # ここでアプリが稼働開始
 
     # 終了時の処理（必要なら）
-    print("🛑 System Shutdown.")
+    logger.info("🛑 System Shutdown.")
     set_bot(None)
     bot_instance = None
 

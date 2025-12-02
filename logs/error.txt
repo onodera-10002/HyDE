@@ -1,1 +1,0 @@
-[2025-11-30 18:58:37] [API] ERROR: ❌ Critical Error during startup: 'AozoraLoader' object has no attribute 'load'
