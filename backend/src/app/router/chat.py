@@ -39,9 +39,6 @@ async def chat_endpoint(
             return ChatOutput(responses=responses)
 
         
-        
-        return ChatOutput(answer=answer_text)
-        
     except Exception as e:
         # エラーログなどはここで処理
         raise HTTPException(status_code=500, detail=str(e))
