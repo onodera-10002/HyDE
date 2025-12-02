@@ -58,4 +58,4 @@ if __name__ == "__main__":
     # ここで自分自身(app)を起動させる
     # reload=True は開発中便利ですが、この起動方法だと効かないことがあるので
     # コードを書き換えたら手動で再起動が必要になる場合があります
-    uvicorn.run(app, host="127.0.0.1", port=8004)
+    uvicorn.run(app, host="127.0.0.1", port=8005)

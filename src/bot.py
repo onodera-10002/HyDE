@@ -50,12 +50,12 @@ class ChatBot:
             self._logger.error(f"ドキュメントの検索中にエラーが発生しました: {e}")
             return {"context": []}
 
-    def _generate(self, state: State):
+    async def _generate(self, state: State):
         docs_content = "\n\n".join(doc.page_content for doc in state["context"])
         if not docs_content:
             return {"answer": "申し訳ありませんが、関連する情報が見つかりませんでした。別の質問をお試しください。"}
         messages = self._prompt.invoke({"question": state["question"], "context": docs_content})
-        response = self._llm.invoke(messages)
+        response = await self._llm.ainvoke(messages)
 
         return {"answer": response.content}
     
@@ -71,11 +71,11 @@ class ChatBot:
         builder.add_edge("retrieve", "generate")
         return builder.compile()
 
-    def run(self, question: str) -> List[str]:
+    async def run(self, question: str) -> List[str]:
         try:
             validate_data = ChatInput(question=question)
             clean_question = validate_data.question
-            ans = self._graph.invoke({"question": clean_question})
+            ans = await self._graph.ainvoke({"question": clean_question})
             return ans["answer"]
         
         except ValidationError as e:
