@@ -4,8 +4,8 @@
 import bs4
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from src import config
-from logger import get_logger
+from backend.src import config
+from backend.logger import get_logger
 
 
 class AozoraLoader:

@@ -1,7 +1,7 @@
 import logging
 import sys
 import os
-from src import config
+from backend.src import config
 # loggerの下準備の部分
 # logをコンソール出力するメゾっト
 # logをlog.txtに保存するメゾッド

@@ -1,15 +1,15 @@
 # main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from src.app.router import chat
-from src.app.dependencies import set_bot
-from logger import get_logger
+from backend.src.app.router import chat
+from backend.src.app.dependencies import set_bot
+from backend.logger import get_logger
 
 # あなたの作成したモジュールをインポート
-from src import config
-from src.loader import AozoraLoader
-from src.vector_store import Vectorstore
-from src.bot import ChatBot
+from backend.src import config
+from backend.src.loader import AozoraLoader
+from backend.src.vector_store import Vectorstore
+from backend.src.bot import ChatBot
 from fastapi.middleware.cors import CORSMiddleware
 
 # グローバル変数として保持（簡易的な実装）
@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     アプリ起動時に1回だけ実行される処理
     ここで重たい処理（データのロード、VectorStoreの構築）を済ませる
     """
-    logger = get_logger()
+    logger = get_logger("Lifespan")
     logger.info("🚀 System Starting... Loading Data...")
 
     # 1. データのロード (ETL)
