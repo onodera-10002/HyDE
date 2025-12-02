@@ -9,6 +9,7 @@ from src import config
 from src.loader import AozoraLoader
 from src.vector_store import Vectorstore
 from src.bot import ChatBot
+from fastapi.middleware.cors import CORSMiddleware
 
 # グローバル変数として保持（簡易的な実装）
 # 実際は app.state に持たせるのがきれいですが、わかりやすさ優先でここに書きます
@@ -51,6 +52,26 @@ async def lifespan(app: FastAPI):
 
 # アプリ作成
 app = FastAPI(lifespan=lifespan, title="Aozora RAG API")
+# === CORS設定 (Security Policy) ===
+    
+    # 1. 許可するオリジン（アクセス元）のリスト
+    # 本番環境(Production)と開発環境(Development)で分けるのが定石
+origins = [
+        "http://localhost:3000",    # React (Create React App)
+        "http://127.0.0.1:3000",    # 上記のIP指定版
+        "http://localhost:5173",    # React (Vite)
+        "http://127.0.0.1:5173",    # 上記のIP指定版
+        # "https://your-production-app.vercel.app", # 本番デプロイ時のURL
+    ]
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,      # 招待リスト（これ以外はブロック）
+        allow_credentials=True,     # Cookie/認証ヘッダーの許可
+        allow_methods=["*"],        # 許可するHTTPメソッド (GET, POST...)
+        allow_headers=["*"],        # 許可するHTTPヘッダー
+    )
+    
 app.include_router(chat.router)
 
 if __name__ == "__main__":
