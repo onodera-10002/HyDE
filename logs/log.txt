@@ -3,3 +3,8 @@
 [2025-12-02 20:46:53] [Lifespan] INFO: ✅ VectorStore Initialized.
 [2025-12-02 20:46:53] [Lifespan] INFO: 🤖 Bot is ready!
 [2025-12-02 20:51:38] [Lifespan] INFO: 🛑 System Shutdown.
+[2025-12-03 12:21:13] [Lifespan] INFO: 🚀 System Starting... Loading Data...
+[2025-12-03 12:21:13] [Lifespan] INFO: ✅ Loaded 24 chunks from Aozora.
+[2025-12-03 12:21:15] [Lifespan] INFO: ✅ VectorStore Initialized.
+[2025-12-03 12:21:15] [Lifespan] INFO: 🤖 Bot is ready!
+[2025-12-03 12:49:11] [Lifespan] INFO: 🛑 System Shutdown.
