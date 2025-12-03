@@ -19,7 +19,7 @@ async def chat_endpoint(
             return await bot.run(q)
         
     # ユーザーの質問
-    questions = payload.questions if payload.questions else [payload.question]
+    questions = payload.questions
 
     try:
         answers = await asyncio.gather(
@@ -32,11 +32,7 @@ async def chat_endpoint(
             for q, a in zip(questions, answers)
         ]
         
-        # 単一質問の場合は後方互換性のため answer も返す
-        if len(responses) == 1:
-            return ChatOutput(answer=responses[0]["answer"], responses=None)
-        else:
-            return ChatOutput(responses=responses)
+        return ChatOutput(responses=responses)
 
         
     except Exception as e:

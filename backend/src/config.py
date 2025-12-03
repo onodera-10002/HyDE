@@ -19,6 +19,7 @@ EMBEDDING_MODEL = "models/gemini-embedding-001"
 CHUNK_SIZE = 700
 CHUNK_OVERLAP = 100
 RETRIEVER_K = 5
+MAX_CHARACTER_LENGTH = 1000
 
 # === プロンプトのテンプレート ===#
 TEMPLATE = """Use the following pieces of context to answer the question at the end.

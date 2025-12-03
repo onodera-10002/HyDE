@@ -74,10 +74,10 @@ class ChatBot:
         return builder.compile()
 
 
-    async def run(self, question: str) -> List[str]:
+    async def run(self, questions: str) -> str:
         try:
-            validate_data = ChatInput(question=question)
-            clean_question = validate_data.question
+            validate_data = ChatInput(question=questions)
+            clean_question = validate_data.questions
             ans = await self._graph.ainvoke({"question": clean_question})
             return ans["answer"]
         

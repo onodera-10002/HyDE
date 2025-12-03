@@ -54,6 +54,9 @@ async def lifespan(app: FastAPI):
 
 # アプリ作成
 app = FastAPI(lifespan=lifespan, title="Aozora RAG API")
+
+
+
 # === CORS設定 (Security Policy) ===
     
     # 1. 許可するオリジン（アクセス元）のリスト
