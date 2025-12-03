@@ -74,11 +74,9 @@ class ChatBot:
         return builder.compile()
 
 
-    async def run(self, questions: str) -> str:
+    async def run(self, question: str) -> str:
         try:
-            validate_data = ChatInput(question=questions)
-            clean_question = validate_data.questions
-            ans = await self._graph.ainvoke({"question": clean_question})
+            ans = await self._graph.ainvoke({"question": question})
             return ans["answer"]
         
         except ValidationError as e:
