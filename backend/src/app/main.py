@@ -1,15 +1,15 @@
 # main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from backend.src.app.router import chat
-from backend.src.app.dependencies import set_bot
-from backend.logger import get_logger
+from src.app.router import chat
+from src.app.dependencies import set_bot
+from logger import get_logger
 
 # あなたの作成したモジュールをインポート
-from backend.src import config
-from backend.src.loader import AozoraLoader
-from backend.src.vector_store import Vectorstore
-from backend.src.bot import ChatBot
+from src import config
+from src.loader import AozoraLoader
+from src.vector_store import Vectorstore
+from src.bot import ChatBot
 from fastapi.middleware.cors import CORSMiddleware
 
 # グローバル変数として保持（簡易的な実装）

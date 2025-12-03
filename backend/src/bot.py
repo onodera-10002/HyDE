@@ -5,10 +5,10 @@ from typing_extensions import List, TypedDict
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import START, StateGraph
-from backend.src.vector_store import Vectorstore
-from backend.src import config
-from backend.src.schemas import ChatInput
-from backend.logger import get_logger
+from src.vector_store import Vectorstore
+from src import config
+from src.schemas import ChatInput
+from logger import get_logger
 from pydantic import ValidationError
 
 
@@ -49,6 +49,7 @@ class ChatBot:
         except Exception as e:
             self._logger.error(f"ドキュメントの検索中にエラーが発生しました: {e}")
             return {"context": []}
+        
 
     async def _generate(self, state: State):
         docs_content = "\n\n".join(doc.page_content for doc in state["context"])
@@ -59,6 +60,7 @@ class ChatBot:
 
         return {"answer": response.content}
     
+
     def _graph_builder(self):
         builder = StateGraph(State)
         # src/bot.py の _build_graph メソッド内
@@ -70,6 +72,7 @@ class ChatBot:
         builder.add_edge("hyde", "retrieve")
         builder.add_edge("retrieve", "generate")
         return builder.compile()
+
 
     async def run(self, question: str) -> List[str]:
         try:

@@ -1,8 +1,8 @@
 # routers/chat.py
 from fastapi import APIRouter, Depends, HTTPException
-from backend.src.schemas import ChatInput, ChatOutput
-from backend.src.bot import ChatBot
-from backend.src.app.dependencies import get_bot # さっき作った依存関係
+from src.schemas import ChatInput, ChatOutput
+from src.bot import ChatBot
+from src.app.dependencies import get_bot # さっき作った依存関係
 import asyncio
 
 router = APIRouter(prefix="/chat", tags=["Chat"])

@@ -1,6 +1,6 @@
 # dependencies.py
 from fastapi import HTTPException
-from backend.src.bot import ChatBot
+from src.bot import ChatBot
 
 # main.py で作った bot_instance を参照するためにインポート
 # 注意: 循環参照を避けるため、設計によっては工夫が必要ですが、
