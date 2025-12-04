@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 from src.config import MAX_CHARACTER_LENGTH
 class ChatInput(BaseModel):
-    questions: list[str] | None = Field(None, min_length=1, max_length=10, examples=[["質問1", "質問2"]])
+    questions: list[str] | None = Field(None, min_length=1, max_length=10, examples=[["質問1", "質問2", "質問3"]])
     @field_validator('questions')
     @classmethod
     def validate_questions(cls, v):
