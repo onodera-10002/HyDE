@@ -1,5 +1,6 @@
 import os
 import getpass
+import psycopg2
 from dotenv import load_dotenv
 load_dotenv()
 # === 1. 設定管理の段階 === #
@@ -10,9 +11,14 @@ if not GOOGLE_API_KEY:
     os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter your Google API Key: ")
 if not LANGSMITH_API_KEY:
     os.environ["LANGSMITH_API_KEY"] = getpass.getpass("Enter your LangSmith API Key: ")
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
 
 # === 2. 定数の定義 === #
-WEB_PATH = "https://www.aozora.gr.jp/cards/000076/files/1016_19596.html"
+WEB_PATH = "/Users/tokutoku/Desktop/RAG_load/吸光度.pdf"
 CHAT_MODEL = "gemini-2.5-flash"
 MODEL_PROVIDER = "google-genai"
 EMBEDDING_MODEL = "models/gemini-embedding-001"

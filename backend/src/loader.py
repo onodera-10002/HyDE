@@ -11,14 +11,14 @@ from logger import get_logger
 
 
 class BaseLoader(ABC):
-    def __init__(self, url:str):
-        self._url = url
+    def __init__(self, source:str):
+        self._source = source
         self._text_splitter = RecursiveCharacterTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
         self._logger = get_logger(__name__)
 
     @property
-    def url(self):
-        return self._url
+    def source(self):
+        return self._source
     
     @property
     def text_splitter(self):
@@ -45,7 +45,7 @@ class AozoraLoader(BaseLoader):
     def _extract(self):
         try:
             loader = WebBaseLoader(
-                web_path = (self.url,),
+                web_path = (self.source,),
                 bs_kwargs = dict(
                     parse_only = bs4.SoupStrainer(class_="main_text")
                 ),
@@ -59,10 +59,10 @@ class AozoraLoader(BaseLoader):
 class PDFLoader(BaseLoader):
     def _extract(self):
         try:
-            if not os.path.exists(self.url):
-                raise FileNotFoundError(f"The file at {self.url} was not found.")
+            if not os.path.exists(self.source):
+                raise FileNotFoundError(f"The file at {self.source} was not found.")
             
-            loader = PDFMinerLoader(file_path=self.url, encoding="utf-8")
+            loader = PDFMinerLoader(file_path=self.source)
             return loader.load()
         except Exception as e:
             self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")

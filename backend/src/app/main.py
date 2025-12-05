@@ -11,6 +11,7 @@ from src.loader import AozoraLoader
 from src.vector_store import Vectorstore
 from src.bot import ChatBot
 from fastapi.middleware.cors import CORSMiddleware
+from src.factories import Factories
 
 # グローバル変数として保持（簡易的な実装）
 # 実際は app.state に持たせるのがきれいですが、わかりやすさ優先でここに書きます
@@ -27,13 +28,13 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 System Starting... Loading Data...")
 
     # 1. データのロード (ETL)
-    loader = AozoraLoader(config.WEB_PATH)
+    loader = Factories.choiseloader(config.WEB_PATH)
     docs = loader.load()
-    logger.info(f"✅ Loaded {len(docs)} chunks from Aozora.")
+    logger.info(f"✅ Loaded {len(docs)} chunks from {config.WEB_PATH}.")
 
     # 2. VectorStoreの初期化
     vector_store = Vectorstore(config.EMBEDDING_MODEL)
-    vector_store.add(docs)
+    vector_store.add(docs, batch_size=50, sleep_time=4)
     logger.info("✅ VectorStore Initialized.")
 
     # 3. ChatBotのインスタンス化 (ここで作成した vector_store を渡す)
