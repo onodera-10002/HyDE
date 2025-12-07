@@ -12,12 +12,12 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 class Vectorstore:
-    def __init__(self, embedding_model:str):
+    def __init__(self, embedding_model:str, collection_name:str = "RaAG_docs"):
         self._embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model)
         self._connection_url = f"postgresql+psycopg2://{config.USER}:{config.PASSWORD}@{config.HOST}:{config.PORT}/{config.DBNAME}"
         self._store = PGVector(
             embeddings=self._embeddings,
-            collection_name="RAG_docs", # テーブル名のようなもの
+            collection_name=collection_name, # テーブル名のようなもの
             connection=self._connection_url,
             use_jsonb=True,
         )
@@ -36,3 +36,5 @@ class Vectorstore:
     def search(self, query:str, k:int):
         return self._store.similarity_search(query=query, k=k)
 
+    def search_score(self, query:str, k:int):
+        return self._store.similarity_search_with_score(query=query, k=k)

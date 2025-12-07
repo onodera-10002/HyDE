@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import START, StateGraph
 from src.vector_store import Vectorstore
 from src import config
-from src.schemas import ChatInput
+from src.cache import SemanticCache
 from logger import get_logger
 from pydantic import ValidationError
 
@@ -31,6 +31,7 @@ class ChatBot:
         self._hyde_chain = hyde_prompt | self._llm | StrOutputParser()
         self._graph = self._graph_builder()
         self._logger = get_logger(__name__)
+        self._cache = SemanticCache(embedding_model=config.EMBEDDING_MODEL)
     
     def _hyde_preparation(self, state:State):
         original_question = state["question"]
@@ -76,7 +77,13 @@ class ChatBot:
 
     async def run(self, question: str) -> str:
         try:
+            cache_check = self._cache._check(question)
+            if cache_check:
+                self._logger.info(f"Cache hit!: {cache_check}")
+                return  cache_check
+        
             ans = await self._graph.ainvoke({"question": question})
+            self._cache.add(question, ans["answer"])
             return ans["answer"]
         
         except ValidationError as e:
