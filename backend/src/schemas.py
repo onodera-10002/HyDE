@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from src.config import MAX_CHARACTER_LENGTH
+
 class ChatInput(BaseModel):
     questions: list[str] | None = Field(None, min_length=1, max_length=10, examples=[["質問1", "質問2", "質問3"]])
     @field_validator('questions')
@@ -21,7 +22,12 @@ class ChatInput(BaseModel):
                     raise ValueError("Each question must be at most 1000 characters long")
         return v
 
-
+class SourceItem(BaseModel):
+    title: str  # 画面表示用（例: "社内規定.pdf 5ページ"）
+    url: str    # クリック時の遷移先（例: "/files/doc1.pdf#page=5"）
+class AnswerItems(BaseModel):
+    response: str
+    sources: list[SourceItem] | None = None
 class ChatOutput(BaseModel):
     """チャットボットの出力データの仕様書"""
-    responses: list[dict] | None = None
+    responses: list[AnswerItems] | None = None
