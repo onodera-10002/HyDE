@@ -1,11 +1,16 @@
-from fastapi import APIRouter, UploadFile, Form, HTTPException
+from fastapi import APIRouter, UploadFile, Form, HTTPException, Request
+from pydantic import BaseModel
 from src.processor import DocumentProcessor
 from langchain_core.documents import Document
 
-router = APIRouter()
 
-@router.post("/upload", operation_id="upload_file")
-async def upload_file(file:UploadFile, title:str = Form(...)) -> list[Document]:
+router = APIRouter()
+class UploadResponse(BaseModel):
+    message: str
+    processed_pages: int
+    
+@router.post("/upload", operation_id="upload_file", response_model=UploadResponse)
+async def upload_file(request: Request, file:UploadFile, title:str = Form(...)) -> list[Document]:
     """
     ファイルをアップロードし、ドキュメントとして処理します。
     
@@ -15,6 +20,12 @@ async def upload_file(file:UploadFile, title:str = Form(...)) -> list[Document]:
     try:
         processor = DocumentProcessor()
         documents = await processor.process(file, user_title=title)
-        return documents
+        vector_store = request.app.state.vector_store
+        vector_store.add(documents, batch_size=50, sleep_time=4)
+        return {
+            "message": f"Successfully processed '{title}'",
+            "processed_pages": len(documents)
+        }
+
     except Exception as e:
-        return HTTPException(status_code=500, detail={"error": str(e)})
+        raise HTTPException(status_code=500, detail={"error": str(e)})

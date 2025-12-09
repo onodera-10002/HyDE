@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from langchain_core.documents import Document
 # あなたが定義したPDFLoaderをインポート
-from src.loader import PDFLoader
+from src.factories import Factories
 
 
 class DocumentProcessor:
@@ -20,13 +20,12 @@ class DocumentProcessor:
             await self._save_temp_file(file, file_path)
             
             # 2. 読み込み (PDFPlumberLoader使用)
-            loader = PDFLoader(source=str(file_path))
+            loader = Factories.choiseloader(source=str(file_path))
             documents = loader.load()
             
             # 3. メタデータ正規化 (ページ付与・タイトル注入)
-            enriched_docs = self._enrich_metadata(documents, user_title, file.filename)
+            return self._enrich_metadata(documents, user_title, file.filename)
             
-            return enriched_docs
 
         finally:
             # 4. 後片付け (必ず実行される)

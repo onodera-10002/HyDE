@@ -7,11 +7,13 @@
 
 export * from "./answerItems";
 export * from "./answerItemsSources";
+export * from "./bodyUploadFile";
 export * from "./chatInput";
 export * from "./chatInputQuestions";
 export * from "./chatOutput";
 export * from "./chatOutputResponses";
 export * from "./hTTPValidationError";
 export * from "./sourceItem";
+export * from "./uploadResponse";
 export * from "./validationError";
 export * from "./validationErrorLocItem";

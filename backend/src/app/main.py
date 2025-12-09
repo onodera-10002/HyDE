@@ -34,8 +34,7 @@ async def lifespan(app: FastAPI):
 
     # 2. VectorStoreの初期化
     vector_store = Vectorstore(config.EMBEDDING_MODEL, collection_name="RAG_docs")
-    vector_store.add(docs, batch_size=50, sleep_time=4)
-    logger.info("✅ VectorStore Initialized.")
+    app.state.vector_store = vector_store  # FastAPIのstateにも保存しておく
 
     # 3. ChatBotのインスタンス化 (ここで作成した vector_store を渡す)
     bot_instance = ChatBot(
@@ -52,6 +51,7 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 System Shutdown.")
     set_bot(None)
     bot_instance = None
+
 
 # アプリ作成
 app = FastAPI(lifespan=lifespan, title="Aozora RAG API")

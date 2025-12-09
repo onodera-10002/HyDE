@@ -19,10 +19,29 @@ export const chatEndpointChatPostBody = zod.object({
 
 export const chatEndpointChatPostResponse = zod.object({
   "responses": zod.union([zod.array(zod.object({
-  "response": zod.string(),
+  "answer": zod.string(),
   "sources": zod.union([zod.array(zod.object({
   "title": zod.string(),
-  "url": zod.string()
+  "url": zod.string(),
+  "page": zod.number()
 })),zod.null()]).optional()
 })),zod.null()]).optional()
 }).describe('チャットボットの出力データの仕様書')
+
+
+/**
+ * ファイルをアップロードし、ドキュメントとして処理します。
+
+- **file**: アップロードするファイル
+- **title**: ユーザーが指定するタイトル
+ * @summary Upload File
+ */
+export const uploadFileBody = zod.object({
+  "file": zod.instanceof(File),
+  "title": zod.string()
+})
+
+export const uploadFileResponse = zod.object({
+  "message": zod.string(),
+  "processed_pages": zod.number()
+})

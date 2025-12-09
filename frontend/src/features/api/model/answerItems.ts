@@ -7,6 +7,6 @@
 import type { AnswerItemsSources } from "./answerItemsSources";
 
 export interface AnswerItems {
-  response: string;
+  answer: string;
   sources?: AnswerItemsSources;
 }

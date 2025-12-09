@@ -15,7 +15,13 @@ import type {
 import * as axios from "axios";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import type { ChatInput, ChatOutput, HTTPValidationError } from "./model";
+import type {
+  BodyUploadFile,
+  ChatInput,
+  ChatOutput,
+  HTTPValidationError,
+  UploadResponse,
+} from "./model";
 
 /**
  * @summary Chat Endpoint
@@ -95,6 +101,96 @@ export const useChatEndpointChatPost = <
   TContext
 > => {
   const mutationOptions = getChatEndpointChatPostMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * ファイルをアップロードし、ドキュメントとして処理します。
+
+- **file**: アップロードするファイル
+- **title**: ユーザーが指定するタイトル
+ * @summary Upload File
+ */
+export const uploadFile = (
+  bodyUploadFile: BodyUploadFile,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<UploadResponse>> => {
+  const formData = new FormData();
+  formData.append(`file`, bodyUploadFile.file);
+  formData.append(`title`, bodyUploadFile.title);
+
+  return axios.default.post(`http://localhost:8005/upload`, formData, options);
+};
+
+export const getUploadFileMutationOptions = <
+  TError = AxiosError<HTTPValidationError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadFile>>,
+    TError,
+    { data: BodyUploadFile },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadFile>>,
+  TError,
+  { data: BodyUploadFile },
+  TContext
+> => {
+  const mutationKey = ["uploadFile"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadFile>>,
+    { data: BodyUploadFile }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return uploadFile(data, axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadFileMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadFile>>
+>;
+export type UploadFileMutationBody = BodyUploadFile;
+export type UploadFileMutationError = AxiosError<HTTPValidationError>;
+
+/**
+ * @summary Upload File
+ */
+export const useUploadFile = <
+  TError = AxiosError<HTTPValidationError>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadFile>>,
+      TError,
+      { data: BodyUploadFile },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadFile>>,
+  TError,
+  { data: BodyUploadFile },
+  TContext
+> => {
+  const mutationOptions = getUploadFileMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

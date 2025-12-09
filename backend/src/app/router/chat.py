@@ -22,14 +22,21 @@ async def chat_endpoint(
     questions = payload.questions
 
     try:
-        answers = await asyncio.gather(
+        chat_responses = await asyncio.gather(
             *[_runner(q) for q in questions]  # これはforループの各質問を並列処理する。
         )
         
-        # 質問と回答をペアリング
+        # ChatResponseオブジェクトからAnswerItemsに変換
         responses = [
-            {"question": q, "answer": a} 
-            for q, a in zip(questions, answers)
+            {
+                "question": q, 
+                "answer": resp.answer,
+                "sources": [
+                    {"title": src.title, "url": src.url, "page": src.page}
+                    for src in resp.sources
+                ] if resp.sources else None
+            } 
+            for q, resp in zip(questions, chat_responses)
         ]
         
         return ChatOutput(responses=responses)

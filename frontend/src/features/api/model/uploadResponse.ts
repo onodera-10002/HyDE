@@ -5,8 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface SourceItem {
-  title: string;
-  url: string;
-  page: number;
+export interface UploadResponse {
+  message: string;
+  processed_pages: number;
 }

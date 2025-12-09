@@ -9,8 +9,19 @@ from src.vector_store import Vectorstore
 from src import config
 from src.cache import SemanticCache
 from logger import get_logger
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
+from typing import Optional
 
+
+class SourceInfo(BaseModel):
+    title: Optional[str] = None
+    url: str
+    page: Optional[int] = None
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: List[SourceInfo] = []
 
 
 class State(TypedDict):
@@ -75,17 +86,36 @@ class ChatBot:
         return builder.compile()
 
 
-    async def run(self, question: str) -> str:
+    async def run(self, question: str) -> ChatResponse:
         try:
             cache_check = self._cache._check(question)
             if cache_check:
                 self._logger.info(f"Cache hit!: {cache_check}")
-                return  cache_check
+                return ChatResponse(answer=cache_check, sources=[])
         
             ans = await self._graph.ainvoke({"question": question})
-            self._cache.add(question, ans["answer"])
-            return ans["answer"]
-        
+            
+            # デバッグ: ansのデータ構造を確認
+            self._logger.info(f"ans type: {type(ans)}")
+            self._logger.info(f"ans keys: {ans.keys() if isinstance(ans, dict) else 'not a dict'}")
+            self._logger.info(f"ans content: {ans}")
+            
+            self._cache.add_question_answer(question, ans["answer"])
+            sources_info = ans.get("context", [])
+            
+            # デバッグ: メタデータ構造を確認
+            if sources_info:
+                self._logger.info(f"First document metadata: {sources_info[0].metadata if sources_info else 'No docs'}")
+            
+            sources_list = [
+                SourceInfo(
+                    title=s.metadata.get("user_title"),
+                    url=f"/files/{s.metadata.get('source_file')}",
+                    page=s.metadata.get("page_info")
+                )
+                for s in sources_info
+            ]
+            return ChatResponse(answer=ans["answer"], sources=sources_list)
         except ValidationError as e:
             self._logger.error(f"question is empty: {e}")
             error_msg = e.errors()[0]['msg']

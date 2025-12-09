@@ -5,8 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface SourceItem {
+export interface BodyUploadFile {
+  file: Blob;
   title: string;
-  url: string;
-  page: number;
 }

@@ -23,11 +23,15 @@ class ChatInput(BaseModel):
         return v
 
 class SourceItem(BaseModel):
-    title: str  # 画面表示用（例: "社内規定.pdf 5ページ"）
+    title: str | None = None  # 画面表示用（例: "社内規定.pdf 5ページ"）
     url: str    # クリック時の遷移先（例: "/files/doc1.pdf#page=5"）
+    page: int | None = None  # ページ番号
+
 class AnswerItems(BaseModel):
-    response: str
+    question: str
+    answer: str
     sources: list[SourceItem] | None = None
+
 class ChatOutput(BaseModel):
     """チャットボットの出力データの仕様書"""
     responses: list[AnswerItems] | None = None

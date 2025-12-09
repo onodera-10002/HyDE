@@ -45,15 +45,54 @@
           }
         }
       }
+    },
+    "/upload": {
+      "post": {
+        "summary": "Upload File",
+        "description": "ファイルをアップロードし、ドキュメントとして処理します。\n\n- **file**: アップロードするファイル\n- **title**: ユーザーが指定するタイトル",
+        "operationId": "upload_file",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_file"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "AnswerItems": {
         "properties": {
-          "response": {
+          "answer": {
             "type": "string",
-            "title": "Response"
+            "title": "Answer"
           },
           "sources": {
             "anyOf": [
@@ -72,9 +111,28 @@
         },
         "type": "object",
         "required": [
-          "response"
+          "answer"
         ],
         "title": "AnswerItems"
+      },
+      "Body_upload_file": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "title"
+        ],
+        "title": "Body_upload_file"
       },
       "ChatInput": {
         "properties": {
@@ -148,14 +206,37 @@
           "url": {
             "type": "string",
             "title": "Url"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
           }
         },
         "type": "object",
         "required": [
           "title",
-          "url"
+          "url",
+          "page"
         ],
         "title": "SourceItem"
+      },
+      "UploadResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "processed_pages": {
+            "type": "integer",
+            "title": "Processed Pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "processed_pages"
+        ],
+        "title": "UploadResponse"
       },
       "ValidationError": {
         "properties": {
