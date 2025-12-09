@@ -1,13 +1,13 @@
 # main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from src.app.router import upload
 from src.app.router import chat
 from src.app.dependencies import set_bot
 from logger import get_logger
 
 # あなたの作成したモジュールをインポート
 from src import config
-from src.loader import AozoraLoader
 from src.vector_store import Vectorstore
 from src.bot import ChatBot
 from fastapi.middleware.cors import CORSMiddleware
@@ -79,6 +79,7 @@ app.add_middleware(
     )
     
 app.include_router(chat.router)
+app.include_router(upload.router)
 
 if __name__ == "__main__":
     import uvicorn
