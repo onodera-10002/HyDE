@@ -90,6 +90,10 @@
     "schemas": {
       "AnswerItems": {
         "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
           "answer": {
             "type": "string",
             "title": "Answer"
@@ -111,6 +115,7 @@
         },
         "type": "object",
         "required": [
+          "question",
           "answer"
         ],
         "title": "AnswerItems"
@@ -200,7 +205,14 @@
       "SourceItem": {
         "properties": {
           "title": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Title"
           },
           "url": {
@@ -208,15 +220,20 @@
             "title": "Url"
           },
           "page": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Page"
           }
         },
         "type": "object",
         "required": [
-          "title",
-          "url",
-          "page"
+          "url"
         ],
         "title": "SourceItem"
       },

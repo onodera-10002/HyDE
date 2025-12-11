@@ -19,11 +19,12 @@ export const chatEndpointChatPostBody = zod.object({
 
 export const chatEndpointChatPostResponse = zod.object({
   "responses": zod.union([zod.array(zod.object({
+  "question": zod.string(),
   "answer": zod.string(),
   "sources": zod.union([zod.array(zod.object({
-  "title": zod.string(),
+  "title": zod.union([zod.string(),zod.null()]).optional(),
   "url": zod.string(),
-  "page": zod.number()
+  "page": zod.union([zod.number(),zod.null()]).optional()
 })),zod.null()]).optional()
 })),zod.null()]).optional()
 }).describe('チャットボットの出力データの仕様書')

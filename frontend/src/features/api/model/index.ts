@@ -17,3 +17,5 @@ export * from "./sourceItem";
 export * from "./uploadResponse";
 export * from "./validationError";
 export * from "./validationErrorLocItem";
+export * from "./sourceItemPage";
+export * from "./sourceItemTitle";

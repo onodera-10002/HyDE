@@ -4,9 +4,11 @@
  * Aozora RAG API
  * OpenAPI spec version: 0.1.0
  */
+import type { SourceItemTitle } from "./sourceItemTitle";
+import type { SourceItemPage } from "./sourceItemPage";
 
 export interface SourceItem {
-  title: string;
+  title?: SourceItemTitle;
   url: string;
-  page: number;
+  page?: SourceItemPage;
 }
