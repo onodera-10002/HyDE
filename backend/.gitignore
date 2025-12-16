@@ -1,37 +1,35 @@
-# --- 機密情報 (最優先！) ---
+# --- 1. 絶対に隠すべき機密情報 (Security) ---
 .env
 .env.local
 *.key
-secrets.py
+*.pem
+secrets.json
 
-# --- Python環境 & ライブラリ ---
+# --- 2. フロントエンド (Node.js/React) ---
+node_modules/
+dist/
+build/
+.npm
+*.log
+.eslintcache
+
+# --- 3. バックエンド (Python) ---
+__pycache__/
+*.pyc
 venv/
 .venv/
 env/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+.pytest_cache/
 
-# --- Mac & OSのゴミ ---
+# --- 4. OS・エディタ設定 (System/IDE) ---
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
 Thumbs.db
-
-# --- エディタ設定 (個人設定は上げない) ---
 .vscode/
 .idea/
-*.swp
 
-# --- テストやログ ---
-.pytest_cache/
-*.log
-logs/
-*.log
-*.error
-
-dist/
-build/
+# --- 5. データ・アップロードファイル (Data) ---
+# アップロード機能で作られるファイルやDBは共有しない
+uploads/
+assets/files/
+*.sqlite3
+*.db

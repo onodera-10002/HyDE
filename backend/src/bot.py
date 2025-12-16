@@ -103,9 +103,6 @@ class ChatBot:
             self._cache.add_question_answer(question, ans["answer"])
             sources_info = ans.get("context", [])
             
-            # デバッグ: メタデータ構造を確認
-            if sources_info:
-                self._logger.info(f"First document metadata: {sources_info[0].metadata if sources_info else 'No docs'}")
             
             sources_list = [
                 SourceInfo(

@@ -1,0 +1,355 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+  ChakraProvider,
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Input,
+  Button,
+  Container,
+  Card,
+  CardBody,
+  Heading,
+  Badge,
+  Spinner,
+  useToast,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Link,
+  Icon,
+  Divider,
+} from "@chakra-ui/react";
+import { FiSend, FiUpload, FiFileText, FiLink } from "react-icons/fi";
+import axios from "axios";
+
+// ==========================================
+// 1. 型定義 (OpenAPI仕様に基づく)
+// ==========================================
+
+// ソース（引用元）の型
+interface SourceItem {
+  title: string | null;
+  url: string;
+  page: number | null;
+}
+
+// チャットの1つの回答アイテム
+interface AnswerItem {
+  question: string;
+  answer: string;
+  sources: SourceItem[] | null;
+}
+
+// APIからのレスポンス
+interface ChatOutput {
+  responses: AnswerItem[] | null;
+}
+
+// 画面表示用のメッセージ型
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  sources?: SourceItem[];
+}
+
+// ==========================================
+// 2. 設定 & APIクライアント
+// ==========================================
+
+const API_BASE_URL = "http://127.0.0.1:8005"; // ★バックエンドのURLに合わせて変更してください
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ==========================================
+// 3. コンポーネント実装
+// ==========================================
+
+function App() {
+  return (
+    <ChakraProvider>
+      <Box minH="100vh" bg="gray.50" py={5}>
+        <Container maxW="container.md">
+          <Heading mb={6} textAlign="center" color="blue.600">
+            Aozora RAG Demo
+          </Heading>
+          
+          <Box bg="white" p={4} borderRadius="lg" shadow="md">
+            <Tabs variant="enclosed" colorScheme="blue">
+      <TabList>
+        <Tab>
+          <HStack spacing={2}>
+            <FiFileText />
+            <Text>Chat</Text>
+          </HStack>
+        </Tab>
+        <Tab>
+          <HStack spacing={2}>
+            <FiUpload />
+            <Text>Upload Document</Text>
+          </HStack>
+        </Tab>
+      </TabList>              <TabPanels>
+                <TabPanel>
+                  <ChatInterface />
+                </TabPanel>
+                <TabPanel>
+                  <UploadInterface />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </Box>
+        </Container>
+      </Box>
+    </ChakraProvider>
+  );
+}
+
+// --- チャット画面コンポーネント ---
+const ChatInterface = () => {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 自動スクロール
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userQuestion = input;
+    setInput("");
+    
+    // ユーザーのメッセージを追加
+    setMessages((prev) => [...prev, { role: "user", content: userQuestion }]);
+    setIsLoading(true);
+
+    try {
+      // API仕様に合わせてリクエスト (questionsは配列)
+      const res = await apiClient.post<ChatOutput>("/chat/", {
+        questions: [userQuestion],
+      });
+
+      const responses = res.data.responses;
+
+      if (responses && responses.length > 0) {
+        const aiResponse = responses[0];
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: aiResponse.answer,
+            sources: aiResponse.sources || [],
+          },
+        ]);
+      } else {
+        throw new Error("No response from AI");
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to get response from API.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "申し訳ありません。エラーが発生しました。" },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <VStack spacing={4} align="stretch" h="600px">
+      {/* メッセージ表示エリア */}
+      <Box flex={1} overflowY="auto" p={2} borderRadius="md" bg="gray.50">
+        {messages.length === 0 && (
+          <Text color="gray.400" textAlign="center" mt={10}>
+            質問を入力してください...
+          </Text>
+        )}
+        
+        {messages.map((msg, idx) => (
+          <Box
+            key={idx}
+            alignSelf={msg.role === "user" ? "flex-end" : "flex-start"}
+            mb={4}
+          >
+            {/* メッセージ本文 */}
+            <Box
+              bg={msg.role === "user" ? "blue.500" : "white"}
+              color={msg.role === "user" ? "white" : "gray.800"}
+              px={4}
+              py={2}
+              borderRadius="lg"
+              shadow={msg.role === "assistant" ? "sm" : "none"}
+              maxW="80%"
+              ml={msg.role === "user" ? "auto" : 0}
+            >
+              <Text whiteSpace="pre-wrap">{msg.content}</Text>
+            </Box>
+
+            {/* ソース（引用元）表示 - AIのみ */}
+            {msg.role === "assistant" && msg.sources && msg.sources.length > 0 && (
+              <Box mt={2} ml={1} maxW="90%">
+                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>
+                  参考資料:
+                </Text>
+                <VStack align="start" spacing={1}>
+                  {msg.sources.map((src, i) => (
+                    <Badge key={i} colorScheme="teal" variant="outline" px={2} py={1} borderRadius="md">
+                      <HStack spacing={1}>
+                        <FiLink />
+                        <Link href={src.url} isExternal fontSize="xs">
+                          {src.title || "No Title"}{src.page ? ` (p.${src.page})` : ""}
+                        </Link>
+                      </HStack>
+                    </Badge>
+                  ))}
+                </VStack>
+              </Box>
+            )}
+          </Box>
+        ))}
+        {isLoading && <Spinner size="sm" color="blue.500" />}
+        <div ref={messagesEndRef} />
+      </Box>
+
+      {/* 入力エリア */}
+      <HStack>
+        <Input
+          placeholder="Type your question..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleSend()}
+          disabled={isLoading}
+        />
+        <Button
+          colorScheme="blue"
+          onClick={handleSend}
+          isLoading={isLoading}
+          leftIcon={<Box as={FiSend} />}
+        >
+          Send
+        </Button>
+      </HStack>
+    </VStack>
+  );
+};
+
+// --- ファイルアップロード画面コンポーネント ---
+const UploadInterface = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const toast = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file || !title) {
+      toast({
+        title: "入力エラー",
+        description: "ファイルとタイトルは必須です。",
+        status: "warning",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", title);
+
+    try {
+      // API仕様に合わせてリクエスト
+      const res = await apiClient.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast({
+        title: "アップロード成功",
+        description: `${res.data.processed_pages}ページを処理しました。`,
+        status: "success",
+      });
+      
+      // リセット
+      setFile(null);
+      setTitle("");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "サーバーエラーが発生しました。";
+      toast({
+        title: "アップロード失敗",
+        description: errorMessage,
+        status: "error",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <VStack spacing={6} align="stretch" py={4}>
+      <Card variant="outline">
+        <CardBody>
+          <VStack spacing={4}>
+            <Heading size="sm">ドキュメント登録</Heading>
+            <Divider />
+            
+            <Box w="100%">
+              <Text mb={2} fontWeight="bold" fontSize="sm">タイトル</Text>
+              <Input 
+                placeholder="例: 社内規定2025年度版" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Box>
+
+            <Box w="100%">
+              <Text mb={2} fontWeight="bold" fontSize="sm">ファイル (PDF/Text)</Text>
+              <Input 
+                type="file" 
+                p={1} 
+                onChange={handleFileChange} 
+                accept=".pdf,.txt,.md"
+              />
+            </Box>
+
+            <Button
+              colorScheme="teal"
+              w="full"
+              onClick={handleUpload}
+              isLoading={isUploading}
+              leftIcon={<Box as={FiUpload} />}
+              isDisabled={!file || !title}
+            >
+              Upload to Knowledge Base
+            </Button>
+          </VStack>
+        </CardBody>
+      </Card>
+    </VStack>
+  );
+};
+
+export default App;
