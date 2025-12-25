@@ -1,0 +1,33 @@
+# LangChain Core
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langgraph
+
+# LangChain Google
+langchain-google-genai
+
+# Vector Store
+langchain-postgres
+psycopg2-binary
+
+# Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# PDF Processing
+pdfplumber
+beautifulsoup4
+
+# Environment
+python-dotenv
+
+# Type Checking
+typing-extensions
+pydantic
+
+# Testing
+pytest
+pytest-asyncio

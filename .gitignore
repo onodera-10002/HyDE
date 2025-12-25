@@ -1,24 +1,56 @@
-# Logs
-logs
+# ==========================================
+# 1. Security & Environment (機密情報)
+# ==========================================
+.env
+.env*
+.env.local
+*.key
+*.pem
+secrets.json
+
+# ==========================================
+# 2. Programming Language Specific
+# ==========================================
+# Python (Backend/General)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.python-version
+
+# Node.js (Frontend/General)
+node_modules/
+**/node_modules/
+.npm
+.eslintcache
+dist/
+build/
+
+# ==========================================
+# 3. Virtual Environments (仮想環境)
+# ==========================================
+venv/
+.venv/
+env/
+ENV/
+
+# ==========================================
+# 4. Data & Databases (RAG/Large Files)
+# ==========================================
+uploads/
+assets/files/
+*.sqlite3
+*.db
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+indices/
+logs/
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ==========================================
+# 5. OS & IDE Settings (システム・エディタ)
+# ==========================================
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
