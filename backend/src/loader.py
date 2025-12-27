@@ -9,6 +9,7 @@ from langchain_community.document_loaders import PDFPlumberLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
 from logger import get_logger
+from docling.document_converter import DocumentConverter
 
 
 class BaseLoader(ABC):
@@ -63,8 +64,9 @@ class PDFLoader(BaseLoader):
             if not os.path.exists(self.source):
                 raise FileNotFoundError(f"The file at {self.source} was not found.")
             
-            loader = PDFPlumberLoader(file_path=self.source)
-            return loader.load()# メゾットとしてのload。関数としてのloadではないことに注意.
+            converter = DocumentConverter()
+            loader = converter.convert(self.source).document
+            return loader.export_to_markdown()# メゾットとしてのload。関数としてのloadではないことに注意.
         except Exception as e:
             self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")
             raise ValueError(f"ドキュメントの抽出中にエラーが発生しました: {e}") from e

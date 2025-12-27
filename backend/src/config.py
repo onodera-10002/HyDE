@@ -18,7 +18,7 @@ PORT = os.getenv("port")
 DBNAME = os.getenv("dbname")
 
 # === 2. 定数の定義 === #
-WEB_PATH = "/Users/tokutoku/Desktop/RAG_load/吸光度.pdf"
+WEB_PATH = "/Users/tokutoku/Desktop/蛍光分光分析.pdf"
 CHAT_MODEL = "gemini-2.5-flash"
 MODEL_PROVIDER = "google-genai"
 EMBEDDING_MODEL = "models/gemini-embedding-001"
