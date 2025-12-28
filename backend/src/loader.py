@@ -5,18 +5,21 @@ from abc import ABC, abstractmethod
 import os
 import bs4
 from langchain_community.document_loaders import WebBaseLoader
-from langchain_community.document_loaders import PDFPlumberLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
 from logger import get_logger
 from docling.document_converter import DocumentConverter
-
+from docling.datamodel.document import DoclingDocument, TableItem
+import neologdn
+import pandas as pd
+from docling.chunking import HybridChunker
 
 class BaseLoader(ABC):
     def __init__(self, source:str):
         self._source = source
-        self._text_splitter = RecursiveCharacterTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
+        self._text_splitter = HybridChunker()
         self._logger = get_logger(__name__)
+        self._converter = DocumentConverter()
 
     @property
     def source(self):
@@ -31,12 +34,38 @@ class BaseLoader(ABC):
         pass
     
     def _transform(self, docs):
-        return self.text_splitter.split_documents(docs)
-        
+        return self.text_splitter.chunk(docs)
+    
+    def _normalization(self, docs):
+        document = docs
+        clean_document = []
+        for item, _ in document.iterate_items():
+            content = ""
+            page_no = item.prov[0]['page_no'] if item.prov else None
+            if item.label in config.NORMALIZE_LABELS:
+                if hasattr(item, "text") and item.text:
+                    item.text = neologdn.normalize(item.text)
+                    content = item.export_to_markdown()
+
+            elif item.label == "TABLE":
+                if isinstance(item, TableItem):
+                    df = item.export_to_dataframe()
+                    df_cleaned = df.applymap(lambda x: neologdn.normalize(str(x)) if pd.notnull(x) else "")
+                    content = df_cleaned.to_markdown(index=False)
+            else:
+                content = item.export_to_markdown()
+
+            clean_document.append({
+                "content": content,
+                "page_no": page_no
+            })
+        return clean_document
+
     
     def load(self):
-        raw_docs = self._extract()
-        return self._transform(raw_docs)
+        clean_docs = self._extract()
+        return self._transform(clean_docs)
+
 
 # このクラス分けは、まず__init__で変数の隠蔽を行う。
 # @poertyでinitの中身を外部から参照できるようにすると同時に、のちにurlという変数の変更や、textsplitteのモジュールの変更の際に、ここを変更すればよいようにする。
@@ -64,9 +93,8 @@ class PDFLoader(BaseLoader):
             if not os.path.exists(self.source):
                 raise FileNotFoundError(f"The file at {self.source} was not found.")
             
-            converter = DocumentConverter()
-            loader = converter.convert(self.source).document
-            return loader.export_to_markdown()# メゾットとしてのload。関数としてのloadではないことに注意.
+            DoclingDocument = self._converter.convert(self.source).document
+            return self._normalization([DoclingDocument])
         except Exception as e:
             self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")
             raise ValueError(f"ドキュメントの抽出中にエラーが発生しました: {e}") from e
