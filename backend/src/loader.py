@@ -33,40 +33,55 @@ class BaseLoader(ABC):
     def _extract(self):
         pass
     
-    def _transform(self, docs):
-        return self.text_splitter.chunk(docs)
+    def _transform(self, docling_doc):
+        # HybridChunkerで構造を維持したまま分割（ValidationErrorを回避）
+        document_chunks = list(self.text_splitter.chunk(docling_doc))
+        
+        normalized_results = []
+        source_url = self.source # コンストラクタ等で保持しているソース名
+        
+        for chunk in document_chunks:
+            # 1. チャンクをテキスト化（表などはここでMarkdownになる）
+            raw_text = self.text_splitter.serialize(chunk)
+            
+            # 2. テキストの正規化 (neologdnで掃除)
+            clean_text = neologdn.normalize(raw_text)
+            
+            # 3. ページ番号の復元（チャンクのメタデータから取得）
+            page_no = "?"
+            if chunk.meta.doc_items:
+                # 最初の要素のprovからページ番号を特定
+                p = chunk.meta.doc_items[0].prov[0] if chunk.meta.doc_items[0].prov else None
+                page_no = getattr(p, "page_no", "?")
+
+            # 4. 「self_ref」などのノイズがない場合のみ、最終リストに追加
+            if clean_text.strip() and "self_ref" not in clean_text:
+                normalized_results.append({
+                    "content": clean_text,
+                    "page_no": page_no,
+                    "source": source_url,
+                    "headings": chunk.meta.headings # 章の見出し情報も追加
+                })
+        return normalized_results
     
     def _normalization(self, docs, WEB_URL=None):
         if WEB_URL is None:
             WEB_URL = self.source
-        document = docs
-        clean_document = []
-        for item, _ in document.iterate_items():
-            content = ""
-            p = item.prov[0]
-            page_no = p.page_no
-            if item.label in config.NORMALIZE_LABELS:
-                if hasattr(item, "text") and item.text:
-                    item.text = neologdn.normalize(item.text)
-                    content = item.text
-                    
+        raw_text = self.text_splitter.serialize(docs)
+        # テキストを正規化
+        clean_text = neologdn.normalize(raw_text)
+        # ページ番号を取得（チャンクに含まれる最初のアイテムから）
+        page_no = "?"
+        if chunk.meta.doc_items:
+            p = chunk.meta.doc_items[0].prov[0] if chunk.meta.doc_items[0].prov else None
+            page_no = getattr(p, "page_no", "?")
 
-            elif item.label == "table":
-                if isinstance(item, TableItem):
-                    df = item.export_to_dataframe(document)
-                    df_cleaned = df.map(lambda x: neologdn.normalize(str(x)) if pd.notnull(x) else "")
-                    content = df_cleaned.to_markdown(index=False)
-            else:
-                content = item
-            if isinstance(content, str) and content.strip():
-                if "self_ref" not in content:
-                    clean_document.append({
-                    "content": content,
-                    "page_no": page_no,
-                    "source": WEB_URL
-                })
-                    
-        return clean_document, print(clean_document)
+        return {
+            "content": clean_text,
+            "page_no": page_no,
+            "source": self.source,
+            "headings": chunk.meta.headings
+        }
 
     
     def load(self):
@@ -97,13 +112,12 @@ class AozoraLoader(BaseLoader):
 class PDFLoader(BaseLoader):
     def _extract(self):
         try:
-            DoclingDocument = self._converter.convert(self.source).document
-            return self._normalization(DoclingDocument)
+            # 辞書ではなく、DoclingDocumentオブジェクトそのものを返す
+            result = self._converter.convert(self.source)
+            return result.document
         except Exception as e:
-            self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")
-            raise ValueError(f"ドキュメントの抽出中にエラーが発生しました: {e}") from e
-
-
+            print(f"Extraction Error: {e}")
+            return None
 
 
 
