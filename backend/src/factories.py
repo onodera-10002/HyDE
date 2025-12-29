@@ -7,6 +7,8 @@ class Factories():
             return AozoraLoader(source)
         elif source.lower().endswith(".pdf"):
             return PDFLoader(source)
+        elif source.lower().endswith("_pdf"):
+            return PDFLoader(source)
         else:
             raise ValueError("対応していないドキュメント形式です。")
 

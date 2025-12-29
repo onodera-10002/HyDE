@@ -50,5 +50,7 @@ QUESTIONS_LIST = [
 LOG_DIR = "logs"
 
 # ==== Doclingに関する初期設定 ==== #
-NORMALIZE_LABELS = ["TEXT", "PARAGRAPH", "TITLE", "SECTION_HEADER", 
-    "LIST_ITEM", "CAPTION", "FOOTNOTE", "REFERENCE", "HANDWRITTEN_TEXT"]
+NORMALIZE_LABELS = [
+    "text", "paragraph", "title", "section_header", 
+    "list_item", "caption", "footnote", "reference", "handwritten_text"
+]

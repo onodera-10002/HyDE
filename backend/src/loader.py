@@ -9,7 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
 from logger import get_logger
 from docling.document_converter import DocumentConverter
-from docling.datamodel.document import DoclingDocument, TableItem
+from docling.datamodel.document import TableItem
 import neologdn
 import pandas as pd
 from docling.chunking import HybridChunker
@@ -36,30 +36,37 @@ class BaseLoader(ABC):
     def _transform(self, docs):
         return self.text_splitter.chunk(docs)
     
-    def _normalization(self, docs):
+    def _normalization(self, docs, WEB_URL=None):
+        if WEB_URL is None:
+            WEB_URL = self.source
         document = docs
         clean_document = []
         for item, _ in document.iterate_items():
             content = ""
-            page_no = item.prov[0]['page_no'] if item.prov else None
+            p = item.prov[0]
+            page_no = p.page_no
             if item.label in config.NORMALIZE_LABELS:
                 if hasattr(item, "text") and item.text:
                     item.text = neologdn.normalize(item.text)
-                    content = item.export_to_markdown()
+                    content = item.text
+                    
 
-            elif item.label == "TABLE":
+            elif item.label == "table":
                 if isinstance(item, TableItem):
-                    df = item.export_to_dataframe()
-                    df_cleaned = df.applymap(lambda x: neologdn.normalize(str(x)) if pd.notnull(x) else "")
+                    df = item.export_to_dataframe(document)
+                    df_cleaned = df.map(lambda x: neologdn.normalize(str(x)) if pd.notnull(x) else "")
                     content = df_cleaned.to_markdown(index=False)
             else:
-                content = item.export_to_markdown()
-
-            clean_document.append({
-                "content": content,
-                "page_no": page_no
-            })
-        return clean_document
+                content = item
+            if isinstance(content, str) and content.strip():
+                if "self_ref" not in content:
+                    clean_document.append({
+                    "content": content,
+                    "page_no": page_no,
+                    "source": WEB_URL
+                })
+                    
+        return clean_document, print(clean_document)
 
     
     def load(self):
@@ -90,11 +97,8 @@ class AozoraLoader(BaseLoader):
 class PDFLoader(BaseLoader):
     def _extract(self):
         try:
-            if not os.path.exists(self.source):
-                raise FileNotFoundError(f"The file at {self.source} was not found.")
-            
             DoclingDocument = self._converter.convert(self.source).document
-            return self._normalization([DoclingDocument])
+            return self._normalization(DoclingDocument)
         except Exception as e:
             self._logger.error(f"ドキュメントの抽出中にエラーが発生しました: {e}")
             raise ValueError(f"ドキュメントの抽出中にエラーが発生しました: {e}") from e
