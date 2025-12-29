@@ -13,11 +13,21 @@ from docling.datamodel.document import TableItem
 import neologdn
 import pandas as pd
 from docling.chunking import HybridChunker
+from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
+from docling_core.transforms.chunker.tokenizer.base import BaseTokenizer
+from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTokenizer
+from transformers import AutoTokenizer
+
+
+tokenizer: BaseTokenizer = HuggingFaceTokenizer(
+    tokenizer=AutoTokenizer.from_pretrained(config.EMBED_MODEL_ID),
+)
+
 
 class BaseLoader(ABC):
     def __init__(self, source:str):
         self._source = source
-        self._text_splitter = HybridChunker()
+        self._text_splitter = HybridChunker(tokenizer=tokenizer)
         self._logger = get_logger(__name__)
         self._converter = DocumentConverter()
 
@@ -34,7 +44,6 @@ class BaseLoader(ABC):
         pass
     
     def _transform(self, docling_doc):
-        # HybridChunkerで構造を維持したまま分割（ValidationErrorを回避）
         document_chunks = list(self.text_splitter.chunk(docling_doc))
         
         normalized_results = []
@@ -63,25 +72,6 @@ class BaseLoader(ABC):
                     "headings": chunk.meta.headings # 章の見出し情報も追加
                 })
         return normalized_results
-    
-    def _normalization(self, docs, WEB_URL=None):
-        if WEB_URL is None:
-            WEB_URL = self.source
-        raw_text = self.text_splitter.serialize(docs)
-        # テキストを正規化
-        clean_text = neologdn.normalize(raw_text)
-        # ページ番号を取得（チャンクに含まれる最初のアイテムから）
-        page_no = "?"
-        if chunk.meta.doc_items:
-            p = chunk.meta.doc_items[0].prov[0] if chunk.meta.doc_items[0].prov else None
-            page_no = getattr(p, "page_no", "?")
-
-        return {
-            "content": clean_text,
-            "page_no": page_no,
-            "source": self.source,
-            "headings": chunk.meta.headings
-        }
 
     
     def load(self):

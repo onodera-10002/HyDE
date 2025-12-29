@@ -18,7 +18,7 @@ PORT = os.getenv("port")
 DBNAME = os.getenv("dbname")
 
 # === 2. 定数の定義 === #
-WEB_PATH = "/Users/tokutoku/Desktop/蛍光分光分析.pdf"
+WEB_PATH = "https://www.jstage.jst.go.jp/article/taxa/43/0/43_30/_pdf"
 CHAT_MODEL = "gemini-2.5-flash"
 MODEL_PROVIDER = "google-genai"
 EMBEDDING_MODEL = "models/gemini-embedding-001"
@@ -26,6 +26,7 @@ CHUNK_SIZE = 700
 CHUNK_OVERLAP = 100
 RETRIEVER_K = 5
 MAX_CHARACTER_LENGTH = 1000
+EMBED_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 
 # === プロンプトのテンプレート ===#
 TEMPLATE = """Use the following pieces of context to answer the question at the end.
