@@ -22,4 +22,4 @@ class SemanticCache:
             page_content=question,
             metadata={"answer": answer}
         )
-        self._vector_store.add([doc], batch_size=1, sleep_time=0)
+        self._vector_store.add([doc])

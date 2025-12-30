@@ -28,7 +28,7 @@ class Vectorstore:
             for doc in chunks:
                 records.append({
                     "_id": str(uuid.uuid4()),      # 一意のID
-                    "chunk_text": doc["content"], # ここがベクトル化される（field_mapで指定したキー）
+                    "text": doc["content"], # ここがベクトル化される（field_mapで指定したキー）
                     "page_no": doc["page_no"],   # これ以降は自動的にメタデータになる
                     "source": doc["source"],
                 })
@@ -50,7 +50,7 @@ class Vectorstore:
                                 )
                     for j in range(0, len(records), config.BATCH_SIZE):
                         batch = records[j : j + config.BATCH_SIZE]
-                        self._index.upsert_records(namespace=self._index_name, records=batch)
+                        self._index.upsert_records(namespace="rag-hyde-database", records=batch)
 
                     logger.info(f"Batch {j//config.BATCH_SIZE + 1} added successfully")
                     break
@@ -72,7 +72,14 @@ class Vectorstore:
             raise
 
     def search(self, query:str, k:int):
-        return self._store.similarity_search(query=query, k=k)
-
-    def search_score(self, query:str, k:int):
-        return self._store.similarity_search_with_score(query=query, k=k)
+    
+        # 検索の実行
+        results = self._index.search(
+        namespace=self._index_name,
+        query={
+            "inputs": {"text": query}, 
+            "top_k": k                  
+        },
+        fields=["chunk_text", "page_no", "source"] 
+        )
+        return results
