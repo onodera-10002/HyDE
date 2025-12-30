@@ -6,7 +6,7 @@ logger = get_logger("SemanticCache")
 
 class SemanticCache:
     def __init__(self, embedding_model:str, threshold:float = 0.2):
-        self._vector_store = Vectorstore(embedding_model=embedding_model, collection_name="SemanticCache")
+        self._vector_store = Vectorstore(embedding_model=embedding_model)
         self._threshold = threshold
 
     def _check(self, query:str):

@@ -51,7 +51,7 @@ class BaseLoader(ABC):
         
         for chunk in document_chunks:
             # 1. チャンクをテキスト化（表などはここでMarkdownになる）
-            raw_text = self.text_splitter.serialize(chunk)
+            raw_text = self.text_splitter.contextualize(chunk)
             
             # 2. テキストの正規化 (neologdnで掃除)
             clean_text = neologdn.normalize(raw_text)

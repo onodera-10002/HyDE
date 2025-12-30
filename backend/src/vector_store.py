@@ -10,53 +10,63 @@ from src import config
 from time import sleep
 from logger import get_logger
 import time
+from pinecone import Pinecone
+import uuid
 
 logger = get_logger(__name__)
 class Vectorstore:
-    def __init__(self, embedding_model:str, collection_name:str = "RaAG_docs"):
+    def __init__(self, embedding_model:str):
         self._embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model)
-        self._connection_url = f"postgresql+psycopg2://{config.USER}:{config.PASSWORD}@{config.HOST}:{config.PORT}/{config.DBNAME}"
-        self._store = PGVector(
-            embeddings=self._embeddings,
-            collection_name=collection_name, # テーブル名のようなもの
-            connection=self._connection_url,
-            use_jsonb=True,
-        )
+        self._pc = Pinecone(api_key=config.PINECONE_API_KEY)
+        self._index_name = "rag-hyde-database"
         
     
     def add(self, chunks, batch_size:int, sleep_time:int):
         try:
-            logger.info(f"Adding {len(chunks)} chunks to vector store in batches of {batch_size}")
-            for i in range(0, len(chunks), batch_size):
-                batch = chunks[i:i+batch_size]
-                logger.info(f"Processing batch {i//batch_size + 1}: {len(batch)} documents")
-                
+            records = []
+            for doc in chunks:
+                records.append({
+                    "_id": str(uuid.uuid4()),      # 一意のID
+                    "chunk_text": doc["content"], # ここがベクトル化される（field_mapで指定したキー）
+                    "page_no": doc["page_no"],   # これ以降は自動的にメタデータになる
+                    "source": doc["source"],
+                })
                 # リトライロジック（API制限対策）
-                max_retries = 3
-                retry_delay = 30  # 30秒待機
+            max_retries = 3
+            retry_delay = 30  # 30秒待機
                 
-                for attempt in range(max_retries):
-                    try:
-                        self._store.add_documents(documents=batch)
-                        logger.info(f"Batch {i//batch_size + 1} added successfully")
-                        break
-                    except Exception as e:
-                        error_msg = str(e)
-                        if "429" in error_msg or "quota" in error_msg.lower():
-                            if attempt < max_retries - 1:
-                                logger.warning(f"⚠️ Rate limit hit. Waiting {retry_delay} seconds before retry {attempt + 1}/{max_retries}...")
-                                time.sleep(retry_delay)
-                                retry_delay *= 2  # 指数バックオフ
-                            else:
-                                logger.error(f"❌ Rate limit exceeded after {max_retries} retries")
-                                raise
+            for attempt in range(max_retries):
+                try:
+                    if not self._pc.has_index(self._index_name):
+                        self._pc.create_index_for_model(
+                            name=self._index_name,
+                            cloud="aws",
+                            region="us-east-1",
+                            embed={
+                                "model":"llama-text-embed-v2",
+                                "field_map":{"text": "chunk_text"}
+                                }
+                                )
+                    index = self._pc.Index(name=self._index_name)
+                    for j in range(0, len(records), config.BATCH_SIZE):
+                        batch = records[j : j + config.BATCH_SIZE]
+                        index.upsert_records(namespace=self._index_name, records=batch)
+
+                    logger.info(f"Batch {j//config.BATCH_SIZE + 1} added successfully")
+                    break
+                except Exception as e:
+                    error_msg = str(e)
+                    if "429" in error_msg or "quota" in error_msg.lower():
+                        if attempt < max_retries - 1:
+                            logger.warning(f"⚠️ Rate limit hit. Waiting {retry_delay} seconds before retry {attempt + 1}/{max_retries}...")
+                            time.sleep(retry_delay)
+                            retry_delay *= 2  # 指数バックオフ
                         else:
+                            logger.error(f"❌ Rate limit exceeded after {max_retries} retries")
                             raise
+                    else:
+                        raise
                 
-                if i + batch_size < len(chunks):
-                    logger.info(f"Sleeping for {sleep_time} seconds...")
-                    sleep(sleep_time)
-            logger.info(f"✅ All {len(chunks)} chunks added to vector store")
         except Exception as e:
             logger.error(f"❌ Error adding documents to vector store: {e}")
             raise

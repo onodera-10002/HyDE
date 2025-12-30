@@ -7,10 +7,13 @@ load_dotenv()
 os.environ["LANGSMITH_TRACING"] = "true"
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 if not GOOGLE_API_KEY:
     os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter your Google API Key: ")
 if not LANGSMITH_API_KEY:
     os.environ["LANGSMITH_API_KEY"] = getpass.getpass("Enter your LangSmith API Key: ")
+if not PINECONE_API_KEY:
+    os.environ["PINECONE_API_KEY"] = getpass.getpass("Enter your Pinecone API Key: ")
 USER = os.getenv("user")
 PASSWORD = os.getenv("password")
 HOST = os.getenv("host")
@@ -27,6 +30,7 @@ CHUNK_OVERLAP = 100
 RETRIEVER_K = 5
 MAX_CHARACTER_LENGTH = 1000
 EMBED_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+BATCH_SIZE = 50
 
 # === プロンプトのテンプレート ===#
 TEMPLATE = """Use the following pieces of context to answer the question at the end.

@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"✅ Loaded {len(docs)} chunks from {config.WEB_PATH}.")
 
     # 2. VectorStoreの初期化
-    vector_store = Vectorstore(config.EMBEDDING_MODEL, collection_name="RAG_docs")
+    vector_store = Vectorstore(config.EMBEDDING_MODEL)
     app.state.vector_store = vector_store  # FastAPIのstateにも保存しておく
 
     # 3. ChatBotのインスタンス化 (ここで作成した vector_store を渡す)
