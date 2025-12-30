@@ -19,9 +19,10 @@ class Vectorstore:
         self._embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model)
         self._pc = Pinecone(api_key=config.PINECONE_API_KEY)
         self._index_name = "rag-hyde-database"
+        self._index = self._pc.Index(name=self._index_name)
         
     
-    def add(self, chunks, batch_size:int, sleep_time:int):
+    def add(self, chunks):
         try:
             records = []
             for doc in chunks:
@@ -47,10 +48,9 @@ class Vectorstore:
                                 "field_map":{"text": "chunk_text"}
                                 }
                                 )
-                    index = self._pc.Index(name=self._index_name)
                     for j in range(0, len(records), config.BATCH_SIZE):
                         batch = records[j : j + config.BATCH_SIZE]
-                        index.upsert_records(namespace=self._index_name, records=batch)
+                        self._index.upsert_records(namespace=self._index_name, records=batch)
 
                     logger.info(f"Batch {j//config.BATCH_SIZE + 1} added successfully")
                     break
