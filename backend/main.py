@@ -12,7 +12,7 @@ def main():
         chunks = loader.load()
         # ここまででloader.pyの役割を完了した。
         logger.info(f"ドキュメントを読み込み(url={config.WEB_PATH})、{len(chunks)}個のチャンクに分割しました。")
-        db = Vectorstore(embedding_model=config.EMBEDDING_MODEL)
+        db = Vectorstore()
         db.add(chunks)
     # ここまででvector_store.pyの役割を完了した。
         logger.info(f"チャンクをベクトルストアに追加しました。チャンク数: {len(chunks)}")

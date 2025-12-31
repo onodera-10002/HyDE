@@ -5,15 +5,16 @@ from logger import get_logger
 logger = get_logger("SemanticCache")
 
 class SemanticCache:
-    def __init__(self, embedding_model:str, threshold:float = 0.2):
-        self._vector_store = Vectorstore(embedding_model=embedding_model)
+    def __init__(self, threshold:float = 0.2):
+        self._vector_store = Vectorstore()
         self._threshold = threshold
 
     def _check(self, query:str):
-        result = self._vector_store.search_score(query=query, k=1)
+        result = self._vector_store.search(query=query, k=1)
         if not result:
             return None
-        doc, score = result[0]
+        doc = result[0]  # Documentオブジェクト
+        score = doc.metadata.get("score", 0.0)
         if score < self._threshold:
             return doc.metadata.get("answer")
     

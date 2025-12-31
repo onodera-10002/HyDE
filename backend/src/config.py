@@ -1,6 +1,5 @@
 import os
 import getpass
-import psycopg2
 from dotenv import load_dotenv
 load_dotenv()
 # === 1. 設定管理の段階 === #
@@ -22,7 +21,7 @@ DBNAME = os.getenv("dbname")
 
 # === 2. 定数の定義 === #
 WEB_PATH = "https://www.jstage.jst.go.jp/article/taxa/43/0/43_30/_pdf"
-CHAT_MODEL = "gemini-2.5-flash"
+CHAT_MODEL = "gemini-2.5-flash"  
 MODEL_PROVIDER = "google-genai"
 EMBEDDING_MODEL = "models/gemini-embedding-001"
 CHUNK_SIZE = 700

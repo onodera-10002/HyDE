@@ -4,19 +4,17 @@
 # ドキュメントをロードし、ベクトルストアに追加する。
 
 #===　1.モジュール等の事前準備の段階 ===#
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_postgres import PGVector  # 新しい主役！
 from src import config
 from time import sleep
 from logger import get_logger
 import time
 from pinecone import Pinecone
 import uuid
+from langchain_core.documents import Document
 
 logger = get_logger(__name__)
 class Vectorstore:
-    def __init__(self, embedding_model:str):
-        self._embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model)
+    def __init__(self):
         self._pc = Pinecone(api_key=config.PINECONE_API_KEY)
         self._index_name = "rag-hyde-database"
         self._index = self._pc.Index(name=self._index_name)
@@ -25,13 +23,29 @@ class Vectorstore:
     def add(self, chunks):
         try:
             records = []
-            for doc in chunks:
+            for item in chunks:
+                # Document型とDict型の両方に対応
+                if isinstance(item, Document):
+                    # Document型の場合
+                    content = item.page_content
+                    page_no = item.metadata.get("page", item.metadata.get("page_no", "?"))
+                    source = item.metadata.get("source_file", item.metadata.get("source", "Unknown"))
+                elif isinstance(item, dict):
+                    # Dict型の場合
+                    content = item["content"]
+                    page_no = item["page_no"]
+                    source = item["source"]
+                else:
+                    logger.warning(f"⚠️ Unknown document type: {type(item)}")
+                    continue
+                
                 records.append({
                     "_id": str(uuid.uuid4()),      # 一意のID
-                    "text": doc["content"], # ここがベクトル化される（field_mapで指定したキー）
-                    "page_no": doc["page_no"],   # これ以降は自動的にメタデータになる
-                    "source": doc["source"],
+                    "text": content, # ここがベクトル化される（field_mapで指定したキー）
+                    "page_no": page_no,   # これ以降は自動的にメタデータになる
+                    "source": source,
                 })
+
                 # リトライロジック（API制限対策）
             max_retries = 3
             retry_delay = 30  # 30秒待機
@@ -72,14 +86,35 @@ class Vectorstore:
             raise
 
     def search(self, query:str, k:int):
-    
+        from langchain_core.documents import Document
+        
         # 検索の実行
-        results = self._index.search(
-        namespace=self._index_name,
-        query={
-            "inputs": {"text": query}, 
-            "top_k": k                  
-        },
-        fields=["chunk_text", "page_no", "source"] 
+        response = self._index.search(
+            namespace=self._index_name,
+            query={
+                "inputs": {"text": query}, 
+                "top_k": k                  
+            },
+            fields=["text", "page_no", "source"]  # chunk_textではなくtext
         )
-        return results
+        
+        # Pineconeの結果をDocument型に変換
+        documents = []
+        
+        # Pineconeのレスポンス構造: response.result.hits
+        if hasattr(response, 'result') and hasattr(response.result, 'hits'):
+            hits = response.result.hits
+            for item in hits:
+                fields = item.get('fields', {})
+                doc = Document(
+                    page_content=fields.get("text", ""),  # chunk_textではなくtext
+                    metadata={
+                        "page_no": fields.get("page_no", "?"),
+                        "source": fields.get("source", "Unknown"),
+                        "score": item.get("_score", 0.0),
+                        "id": item.get("_id", "")
+                    }
+                )
+                documents.append(doc)
+        
+        return documents

@@ -40,9 +40,9 @@ class DocumentProcessor:
             # ページ番号をメタデータに追加
             if "page" not in doc.metadata:
                 doc.metadata["page"] = "Unknown"
-            doc.metadata["user_title"] = user_title
-            doc.metadata["source_file"] = filename
-            doc.metadata["page_info"] = doc.metadata["page"] + 1
+                doc.metadata["user_title"] = user_title
+                doc.metadata["source_file"] = filename
+                doc.metadata["page_info"] = doc.metadata["page"] + 1
         return documents
     
     def _cleanup(self, path: Path):

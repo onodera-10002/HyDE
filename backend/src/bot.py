@@ -42,7 +42,7 @@ class ChatBot:
         self._hyde_chain = hyde_prompt | self._llm | StrOutputParser()
         self._graph = self._graph_builder()
         self._logger = get_logger(__name__)
-        self._cache = SemanticCache(embedding_model=config.EMBEDDING_MODEL)
+        self._cache = SemanticCache()
     
     def _hyde_preparation(self, state:State):
         original_question = state["question"]
@@ -106,9 +106,9 @@ class ChatBot:
             
             sources_list = [
                 SourceInfo(
-                    title=s.metadata.get("user_title"),
-                    url=f"/files/{s.metadata.get('source_file')}",
-                    page=s.metadata.get("page_info")
+                    title=s.metadata.get("user_title", "Unknown Title"),
+                    url=s.metadata.get("source", "Unknown"),
+                    page=int(s.metadata.get("page_no")) if isinstance(s.metadata.get("page_no"), (int, float)) else None
                 )
                 for s in sources_info
             ]
