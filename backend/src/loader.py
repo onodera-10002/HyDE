@@ -2,14 +2,11 @@
 
 #===　1.モジュール等の事前準備の段階 ===#
 from abc import ABC, abstractmethod
-import os
 import bs4
 from langchain_community.document_loaders import WebBaseLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
 from logger import get_logger
 from docling.document_converter import DocumentConverter
-from docling.datamodel.document import TableItem
 import neologdn
 import pandas as pd
 from docling.chunking import HybridChunker
